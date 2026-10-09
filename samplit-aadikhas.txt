@@ -1,0 +1,13 @@
+import sys
+import random
+
+filename = sys.argv[1]
+<<<<<<< HEAD
+with open(filename) as py:
+    for line in py:
+=======
+with open(filename) as f:
+    for l in f:
+>>>>>>> hw_1b
+        if random.random() <.01:
+            print(l, end="")
