@@ -33,7 +33,17 @@ def index(request):
     context = {}
     return render(request, 'app/index.html', context)
 
+def time_view(request):
+    now = datetime.now(CDT)
+    return HttpResponse(now.strftime("%H:%M"), content_type="text/plain")
 
+def sum_view(request):
+    try:
+        n1 = float(request.GET.get("n1"))
+        n2 = float(request.GET.get("n2"))
+        return JsonResponse({"sum": n1 + n2})
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "n1 and n2 must be numbers"}, status=400)
 
 # ---------------------------------------------------------------------------
 # HW4  — user creation
