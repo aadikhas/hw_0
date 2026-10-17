@@ -15,6 +15,7 @@ from datetime import datetime
 import zoneinfo
 import json
 import io
+from decimal import Decimal, InvalidOperation
 
 # from .models import (InstructorProfile, StudentProfile, Course, Enrollment,
 #                      Lecture, QRCodeUpload, is_instructor, is_student,
@@ -39,11 +40,10 @@ def time_view(request):
 
 def sum_view(request):
     try:
-        n1 = float(request.GET.get("n1"))
-        n2 = float(request.GET.get("n2"))
-        return JsonResponse({"sum": n1 + n2})
-    except (TypeError, ValueError):
-        return JsonResponse({"error": "n1 and n2 must be numbers"}, status=400)
+        total = Decimal(request.GET.get("n1")) + Decimal(request.GET.get("n2"))
+        return HttpResponse(f"<p>{total}</p>")
+    except (TypeError, InvalidOperation):
+        return HttpResponse("<p>n1 and n2 must be numbers</p>", status = 400)
 
 # ---------------------------------------------------------------------------
 # HW4  — user creation
