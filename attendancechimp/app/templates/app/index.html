@@ -12,6 +12,17 @@
 <body>
 <div class="bio">
     <h1>AttendanceChimp</h1>
+    <p>AttendanceChimp tracks class attendance via QR codes that are unique
+        to each student for each lecture the student attends.</p>
+    
+    {% if user.is_authenticated %}
+        <p><b>{{ user.username }}</b></p>
+    {% else %}
+        <p>Not logged in.</p>
+    {% endif %}
+
+    <p>Current time (CST): {{ time }}</p>
+
     <p>Electronic class attendance tracking application.</p>
     <hr>
 

@@ -31,7 +31,8 @@ CDT = zoneinfo.ZoneInfo("America/Chicago")
 def index(request):
     """Render the home page (index.html)."""
 
-    context = {}
+    context = {"time": datetime.now(CDT).strftime("%H:%M"),
+               "user": request.user}
     return render(request, 'app/index.html', context)
 
 def time_view(request):
@@ -48,7 +49,14 @@ def sum_view(request):
 # ---------------------------------------------------------------------------
 # HW4  — user creation
 # ---------------------------------------------------------------------------
+from django.views.decorators.http import require_GET
 
+@require_GET
+def new(request):
+    '''
+    Renders the sign up form. GET only, otherwise fxn returns 405 error.
+    '''
+    return render(request, 'app/new.html')
 
 
 # ---------------------------------------------------------------------------

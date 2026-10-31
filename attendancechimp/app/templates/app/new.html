@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AttendanceChimp</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        .bio { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<div class="bio">
+    <h1>AttendanceChimp</h1>
+    <h2>Sign Up</h2>
+    <form action="/app/createUser" method="POST">
+        <p><input type="text" name="user_name" placeholder="User name" required></p>
+        <p><input type="email" name="email" placeholder="Email" required></p>
+        <p><input type="password" name="password" placeholder="Password" required></p>
+        <p>
+            <label><input type="radio" name="is_student" value="1" checked> Student</label>
+            <label><input type="radio" name="is_student" value="0"> Instructor</label>
+        </p>
+        <p><button type="submit">Sign Up</button></p>
+    </form>
+    <hr>
+</div>
+</body>
+</html>
