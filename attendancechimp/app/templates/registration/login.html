@@ -3,5 +3,12 @@
 <body style="text-align:center; font-family:Arial;">
 <h1>Log In</h1>
 
+<form method="POST" action="/accounts/login/">
+    {% csrf_token %}
+    <p><input type="text" name="username" placeholder="User name" required></p>
+    <p><input type="password" name="password" placeholder="Password" required></p>
+    <p><button type="submit">Log In</button></p>
+</form>
+
 </body>
 </html>

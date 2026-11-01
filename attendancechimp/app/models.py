@@ -41,6 +41,28 @@ def qr_generator(length=32):
     elements = [random.choice(chars) for _ in range(length)]
     return "".join(elements)
 
+def create_user_with_profile(email, user_name, password, is_student):
+    '''
+    Creates a Django user and a StudentProfile or InstructorProfile.
+    '''
+    if not (email and user_name and password):
+        raise ValueError("Must fill in all fields.")
+    if User.objects.filter(email = email).exists():
+        raise ValueError("This email is already registered.")
+    if User.objects.filter(username = user_name).exists():
+        raise ValueError("This username has already been taken.")
+
+    user = User.objects.create_user(username = user_name,
+                                    email = email,
+                                    password = password)
+    if is_student:
+        StudentProfile.objects.create(user = user)
+    else:
+        InstructorProfile.objects.create(user = user)
+    logger.info("Created user %s (student=%s)", user_name, is_student)
+    
+    return user
+      
 
 # ---------------------------------------------------------------------------
 # User profiles
