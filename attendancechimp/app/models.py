@@ -18,10 +18,14 @@ Entities
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.dateparse import parse_time
+from django.utils import timezone
 
 import logging
 import string
 import random
+import zoneinfo
+
 
 logger = logging.getLogger(__name__) # set up tracking, auditing, and debugging
                                                                # allows using logger.warning(), logger.error(), 
@@ -40,6 +44,7 @@ def qr_generator(length=32):
     chars = string.ascii_letters + string.digits
     elements = [random.choice(chars) for _ in range(length)]
     return "".join(elements)
+
 
 def create_user_with_profile(email, user_name, password, is_student):
     '''
@@ -62,7 +67,91 @@ def create_user_with_profile(email, user_name, password, is_student):
     logger.info("Created user %s (student=%s)", user_name, is_student)
     
     return user
-      
+
+
+def is_instructor(user):
+    '''
+    If a user has an InstructorProfile and is logged in, the 
+    function will return true.
+    '''
+    return (user.is_authenticated and
+            InstructorProfile.objects.filter(user=user).exists())
+
+
+def is_student(user):
+    '''Returns True if a user is logged in and has a StudentProfile.'''
+    return (user.is_authenticated and
+            StudentProfile.objects.filter(user=user).exists())
+
+
+def create_course(user, name, start_time, end_time, days):
+    '''
+    Creates a Course that's taught by an instructor.
+    Args: 
+        user (User), name (str), start_time/end_time (str, "HH:MM"),
+        days (lst[str])
+    
+    Returns (Course): the new course
+    '''
+    if not (name and start_time and end_time):
+        raise ValueError("Fields can't be null")
+    if not days:
+        raise ValueError("Select at least one meeting day")
+    start = parse_time(start_time)
+    end = parse_time(end_time)
+    if start is None or end is None:
+        raise ValueError("Invalid time")
+    if Course.objects.filter(name=name).exists():
+        raise ValueError("A course with this name already exists")
+
+    instructor = InstructorProfile.objects.get(user=user)
+    return Course.objects.create(name=name, instructor=instructor,
+                                 meeting_days=",".join(days),
+                                 start_time=start, end_time=end)
+
+
+def create_lecture(course_name, lecture_date):
+    '''
+    Creates a Lecture for the course
+    Args: 
+        course_name (str)
+        lecture_date (date)
+    Returns (Lecture): the new lecture
+    '''
+    if not course_name:
+        raise ValueError("Must choose a course")
+    course = Course.objects.filter(name=course_name).first()
+    if course is None:
+        raise ValueError("No course with this name")
+    
+    return Lecture.objects.create(course=course, date=lecture_date)
+
+
+def create_qr_upload(user, image_file):
+    '''
+    Saves uploaded QR code image a student
+    Args: 
+        user (User), image_file (UploadedFile)
+    Returns (QRCodeUpload): the new row
+    '''
+    if image_file is None:
+        raise ValueError("No image uploaded.")
+    student = StudentProfile.objects.get(user=user)
+    return QRCodeUpload.objects.create(student=student, image=image_file)
+
+
+def get_upload_data():
+    '''
+    Returns lst[dict]: 
+        one dict per QRCodeUpload with keys: "username" and "upload_time"
+    '''
+    cdt = zoneinfo.ZoneInfo("America/Chicago")
+    uploads = (QRCodeUpload.objects.select_related("student__user")
+               .order_by("uploaded_at"))
+    return [{"username": u.student.user.username,
+             "upload_time": timezone.localtime(u.uploaded_at, cdt)
+                            .strftime("%Y-%m-%d %H:%M:%S")}
+            for u in uploads]
 
 # ---------------------------------------------------------------------------
 # User profiles

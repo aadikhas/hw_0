@@ -20,7 +20,10 @@ from decimal import Decimal, InvalidOperation
 
 from .models import (InstructorProfile, StudentProfile, Course, Enrollment,
                      Lecture, QRCodeUpload, create_user_with_profile)
-# from .models import (is_instructor, is_student, getUploadsForCourse)
+from .models import (is_instructor, is_student, create_course, create_lecture, 
+                     create_qr_upload, get_upload_data)
+
+# from .models import(getUploadsForCourse)
 
 CDT = zoneinfo.ZoneInfo("America/Chicago")
 
@@ -81,7 +84,91 @@ def createUser(request):
 # HW5  — courses, lectures, QR uploads, dump
 # ---------------------------------------------------------------------------
 
+@require_GET
+def new_course(request):
+    return render(request, 'app/new_course.html')
 
+@require_GET
+def new_lecture(request):
+    return render(request, 'app/new_lecture.html', 
+                  {"courses": Course.objects.all()})
+
+@require_GET
+def new_qr_upload(request):
+    return render(request, 'app/new_qr_upload.html')
+
+@csrf_exempt
+@require_POST
+def createCourse(request):
+    '''
+    Function is POST only and instructors only (401 otherwise). 
+    Reads course name, start time, end time, and day to create a Course.
+    '''
+    if not is_instructor(request.user):
+        return HttpResponse("Instructor login required", status=401)
+
+    days = [d.capitalize() for d in ("mon", "tue", "wed", "thu", "fri")
+            if request.POST.get(f"day-{d}")]
+    try:
+        create_course(request.user,
+                      request.POST.get("course-name"),
+                      request.POST.get("start-time"),
+                      request.POST.get("end-time"),
+                      days)
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+
+    return HttpResponse("Course created")
+
+@csrf_exempt
+@require_POST
+def createLecture(request):
+    '''
+    Function is POST and instructors only (401 otherwise). 
+    Reads a course name
+    and creates a Lecture dated today (CDT) for that course.
+    '''
+    if not is_instructor(request.user):
+        return HttpResponse("Instructor login required", status=401)
+
+    try:
+        create_lecture(request.POST.get("choice"), datetime.now(CDT).date())
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+
+    return HttpResponse("Lecture created")
+
+
+@csrf_exempt
+@require_POST
+def createQRCodeUpload(request):
+    '''
+    Function is POST and students only (401 otherwise). 
+    Reads the file field imageUpload and creates a QRCodeUpload for the 
+    logged-in student.
+    '''
+    if not is_student(request.user):
+        return HttpResponse("Student login required", status=401)
+
+    try:
+        create_qr_upload(request.user, request.FILES.get("imageUpload"))
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+
+    return HttpResponse("QR code uploaded")
+
+
+@require_GET
+def dumpUploads(request):
+    '''
+    Function is GET and instructors only (401 otherwise). 
+    Returns a JSON list of
+    {"username": ..., "upload_time": ...} for every QR code upload.
+    '''
+    if not is_instructor(request.user):
+        return HttpResponse("Instructor login is required", status=401)
+
+    return JsonResponse(get_upload_data(), safe=False)
 
 # ---------------------------------------------------------------------------
 # HW6  — getUploads

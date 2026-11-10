@@ -7,3 +7,25 @@ HW4:
 
 
 
+HW5:
+
+* Used AI for copy-paste type html structure for the new templates (new\_course...new\_qr\_upload)
+* Needed help on how to handle days = \[d.capitalize() for d in ("mon", "tue", "wed", "thu", "fri") if request.POST.get(f"day-{d}")].
+* Needed help formatting timezone in central time: 
+
+
+
+&#x20;   return \[{"username": u.student.user.username,
+
+&#x20;            "upload\_time": timezone.localtime(u.uploaded\_at, cdt)
+
+&#x20;                           .strftime("%Y-%m-%d %H:%M:%S")}
+
+&#x20;           for u in uploads]
+
+* safe=Fale in the views for def dumpUploads was needed because the object is a list instead of a dict so we can tell Django that we should have a list of dicts, where each dict has a student's QR Code upload data.
+
+
+
+
+

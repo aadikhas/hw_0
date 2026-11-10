@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AttendanceChimp</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        .bio { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<div class="bio">
+    <h1>AttendanceChimp</h1>
+    <h2>New Lecture</h2>
+    <form action="/app/createLecture" method="POST">
+        <p>
+            <select name="choice" required>
+                {% for course in courses %}
+                    <option value="{{ course.name }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <p><button type="submit">Create Lecture</button></p>
+    </form>
+    <hr>
+</div>
+</body>
+</html>
