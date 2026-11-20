@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_GET, require_POST
+from django.utils import timezone
 from datetime import datetime
 import zoneinfo
 import json
@@ -21,7 +22,7 @@ from decimal import Decimal, InvalidOperation
 from .models import (InstructorProfile, StudentProfile, Course, Enrollment,
                      Lecture, QRCodeUpload, create_user_with_profile)
 from .models import (is_instructor, is_student, create_course, create_lecture, 
-                     create_qr_upload, get_upload_data)
+                     create_qr_upload, get_upload_data, getUploadsForCourse)
 
 # from .models import(getUploadsForCourse)
 
@@ -174,5 +175,20 @@ def dumpUploads(request):
 # HW6  — getUploads
 # ---------------------------------------------------------------------------
 
+@require_GET
+def getUploads(request):
+    course = request.GET.get("course")
+    if not course:
+        return JsonResponse({"error": "Missing course parameter"}, status = 400)
 
+    if not is_instructor(request.user):
+        return HttpResponse("Instructor login is required", status = 401)
+
+    data = []
+    for u in getUploadsForCourse(course):
+        local = timezone.localtime(u.uploaded_at, CDT)
+        data.append({
+            "username": u.student.user.username,
+            "upload_time": local.strftime("%Y-%m-%d %H:%M:%S")})
+    return JsonResponse(data, safe = False)
 

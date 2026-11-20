@@ -153,6 +153,26 @@ def get_upload_data():
                             .strftime("%Y-%m-%d %H:%M:%S")}
             for u in uploads]
 
+
+def getUploadsForCourse(course):
+    c = Course.objects.filter(name = course).first()
+    if c is None:
+        return []
+    days = {d.strip().lower()[:3] for d in c.meeting_days.split(",")}
+    cdt = zoneinfo.ZoneInfo("America/Chicago")
+
+    uploads = QRCodeUpload.objects.filter(lecture__course = c)
+
+    valid = []
+    for u in uploads:
+        local = timezone.localtime(u.uploaded_at, cdt)
+        day = local.strftime("%a").lower()
+        right_day = day in days
+        right_time = c.start_time <= local.time() <= c.end_time
+        if right_day and right_time:
+            valid.append(u)
+    return valid
+
 # ---------------------------------------------------------------------------
 # User profiles
 # ---------------------------------------------------------------------------
